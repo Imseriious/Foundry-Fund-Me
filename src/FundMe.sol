@@ -3,6 +3,7 @@
 pragma solidity ^0.8.18;
 
 import {PriceConverter} from "./PriceConverter.sol";
+import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 
 error FundMe__NotOwner();
 
@@ -14,14 +15,16 @@ contract FundMe {
     mapping(address funder => uint256 amount) public funderToAmount;
 
     address public immutable i_owner;
+    AggregatorV3Interface private s_priceFeed;
 
-    constructor() {
+    constructor(address priceFeed) {
         i_owner = msg.sender;
+        s_priceFeed = AggregatorV3Interface(priceFeed);
     }
 
     function fund() public payable {
         require(
-            msg.value.gerConversionRate() >= MINIMUM_USD,
+            msg.value.getConversionRate(s_priceFeed) >= MINIMUM_USD,
             "Not enough founds"
         );
         funders.push(msg.sender);
@@ -41,6 +44,10 @@ contract FundMe {
 
         //Transfer all the balance from this contract to the address that calls this function.
         payable(msg.sender).transfer(address(this).balance); //Can be done also with send, or call.
+    }
+
+    function getVersion() public view returns (uint256) {
+        return s_priceFeed.version();
     }
 
     modifier onlyOwner() {
