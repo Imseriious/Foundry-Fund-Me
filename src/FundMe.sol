@@ -14,7 +14,7 @@ contract FundMe {
     address[] private s_funders; // []
     mapping(address funder => uint256 amount) private s_funderToAmount; // Private is more gas efficient. (If need to return, check getter function at the end of this file)
 
-    address public immutable i_owner;
+    address private immutable i_owner;
     AggregatorV3Interface private s_priceFeed;
 
     constructor(address priceFeed) {
@@ -73,5 +73,9 @@ contract FundMe {
 
     function getFunder(uint256 index) external view returns (address) {
         return s_funders[index];
+    }
+
+    function getOwner() external view returns (address) {
+        return i_owner;
     }
 }
